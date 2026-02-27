@@ -3,7 +3,7 @@
 **DNS-based discovery for MCP: organisation-scoped registry using `_mcp` TXT records**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Paper: v1.0](https://img.shields.io/badge/Paper-v1.0-green.svg)](paper/mcp-registry-architecture.pdf)
+[![Paper: v1.1](https://img.shields.io/badge/Paper-v1.1-green.svg)](mcp-dns-registry.pdf)
 
 ---
 
@@ -83,7 +83,10 @@ The architecture is vendor-neutral. Equivalent implementations using Cloudflare 
 ```
 mcp-dns-registry/
 ├── SPEC.md                          # The _mcp DNS convention specification
-├── paper/                           # v1.0 architecture paper (PDF)
+├── mcp-dns-registry.pdf             # Current architecture paper
+├── mcp-dns-registry.md              # Current architecture paper (Markdown)
+├── mcp-dns-registry.docx            # Current architecture paper (Word)
+├── versions/                        # Archived prior versions
 ├── registry/                        # Lambda@Edge function + deployment scripts
 ├── dns/                             # DNS record examples (Route 53, Cloudflare, BIND)
 ├── infrastructure/                  # CloudFormation + Terraform
@@ -157,9 +160,18 @@ Use `client/discover.py mariothomas.com` to query it directly.
 
 ## Paper
 
-The full architecture paper (v1.0, February 2026) is available in [`paper/`](paper/mcp-registry-architecture.pdf) and at [mariothomas.com](https://mariothomas.com).
+The current architecture paper (v1.1) is available in the root of this repository and at [mariothomas.com](https://mariothomas.com).
 
-It covers the design rationale, security model, IANA considerations, cost analysis, and complete deployment guide.
+It covers the design rationale, security model, IANA considerations, cost analysis, and complete deployment guide. Prior versions are archived in [`versions/`](versions/).
+
+---
+
+## Changelog
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.0 | 25 February 2026 | Initial publication. |
+| 1.1 | March 2026 | Added Section 2.3 — What This Proposal Does Not Solve — clarifying that the `_mcp` DNS record addresses discovery only, and that authentication, authorisation, and tool capability enumeration are explicitly out of scope for the DNS layer. |
 
 ---
 
