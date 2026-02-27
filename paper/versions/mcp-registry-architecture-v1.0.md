@@ -4,21 +4,14 @@
 **Mario Thomas**  
 Head of Applied AI & Emerging Technology Strategy, AWS  
 Chartered Director & Fellow, Institute of Directors mario@mariothomas.com  |  mariothomas.com  
-*27 February 2026*  
-*Version 1.1*  
+*25 February 2026*  
+*Version 1.0*  
 
 ---
 
 ## Abstract
 
 > This paper proposes a lightweight, deployable architecture for solving the agent discovery problem in Model Context Protocol (MCP) ecosystems. The core proposal is a DNS-based convention — an _mcp TXT record — that points any compliant AI agent to an organisation's MCP registry. DNS-based discovery is not new: MX, SRV, _dmarc, and WebFinger all use the same pattern. The novelty here is the specific convention for MCP, the design decision to make the registry itself an MCP server (requiring no special client code), and a fully serverless reference implementation: Amazon CloudFront for global distribution, Lambda@Edge for request parsing, RS256 JWT authentication, and JSON-RPC routing, and Amazon DynamoDB Global Tables for dynamic registry data. No novel infrastructure is required. The proposal composes existing, operationally proven technologies into a governance-first discovery layer that any organisation can deploy in a day and run for under $5 per month at typical registry volumes.
-
-## Document History
-
-| Version | Date | Status | Summary of Changes |
-|---------|------|--------|--------------------|
-| 1.0 | 25 February 2026 | Published | Initial publication. |
-| 1.1 | March 2026 | Published | Added Section 2.3 — What This Proposal Does Not Solve — clarifying that the _mcp DNS record addresses discovery only, and that authentication, authorisation, and tool capability enumeration are explicitly out of scope for the DNS layer. |
 
 ## 1.  The Problem This Paper Solves
 
@@ -63,15 +56,6 @@ MCP provides the interface layer for steps 2, 3, and 5. The agent's sophisticati
 ### 2.2  What MCP Does Not Solve
 
 MCP defines the communication protocol between an agent and a server. It does not define how an agent discovers which servers exist. Once connected, an agent can query a server's capabilities dynamically. But finding the server to connect to in the first place is left entirely to the implementer. This is the gap this paper addresses.
-
-### 2.3  What This Proposal Does Not Solve
-
-This proposal solves discovery. It does not solve authentication, authorisation, or capability enumeration — and it is important to be precise about why.
-The _mcp DNS record is a naming convention. It tells a compliant agent where to find an organisation's MCP registry. It does not tell the agent whether it is permitted to connect, and it does not authenticate either party. The auth= field in the record is a pointer to a token endpoint — it is a signpost, not a gate. Authentication and authorisation remain the responsibility of the registry and of each individual MCP server. This paper describes one approach to registry-level authentication using RS256 JWT validation at the Lambda@Edge layer; that is an implementation choice, not a property of the DNS record itself.
-
-The registry lists servers, not the capabilities beneath them. An agent that discovers the registry and retrieves the server manifest knows which MCP servers exist and where to connect. It does not yet know what any of those servers can do. Tool enumeration — the actual capabilities an agent can invoke — requires a subsequent tools/list call to each individual server. Discovery and capability enumeration are sequential steps, not a single operation. The DNS record initiates the first step only.
-
-This layering is intentional. DNS is the right primitive for the discovery problem precisely because it is lightweight, globally distributed, and operationally well-understood. Extending it to carry authentication state or capability manifests would undermine those properties. Each layer should do one thing well.
 
 ## 3.  The Discovery Problem in Detail
 
