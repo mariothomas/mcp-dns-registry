@@ -4,8 +4,8 @@
 **Mario Thomas**  
 Head of Applied AI & Emerging Technology Strategy, AWS  
 Chartered Director & Fellow, Institute of Directors mario@mariothomas.com  |  mariothomas.com  
-*28 February 2026*  
-*Version 1.2*  
+*27 February 2026*  
+*Version 1.1*  
 
 ---
 
@@ -19,7 +19,6 @@ Chartered Director & Fellow, Institute of Directors mario@mariothomas.com  |  ma
 |---------|------|--------|--------------------|
 | 1.0 | 25 February 2026 | Published | Initial publication. |
 | 1.1 | 27 February 2026 | Published | Added Section 2.3 — What This Proposal Does Not Solve — clarifying that the _mcp DNS record addresses discovery only, and that authentication, authorisation, and tool capability enumeration are explicitly out of scope for the DNS layer. |
-| 1.2 | 28 February 2026 | Published | Extended Section 7.4 to address registry-level content filtering as a mitigation for prompt injection attacks, drawing on the DNS reputation services analogy. Added Section 10.6 — Agent Peer Discovery: A Natural Extension — sketching the /.well-known/mcp peer discovery model, referencing WebRTC and data mesh parallels, and positioning direct agent capability advertisement as a complementary layer to the registry architecture. Acknowledgements section added. |
 
 ## 1.  The Problem This Paper Solves
 
@@ -367,8 +366,6 @@ A novel attack surface this proposal introduces is prompt injection through regi
 
 Mitigations include: strict input validation on all DynamoDB writes, limiting the length and character set of free-text fields, and treating all registry content as untrusted input in the agent's reasoning pipeline. Agents should not execute instructions embedded in tool descriptions; they should use those descriptions only to reason about which tool to invoke.
 
-As the MCP ecosystem matures, registry-level content filtering services will likely emerge — analogous to DNS reputation services such as Cisco Umbrella or Cloudflare Gateway, which maintain continuously updated lists of known malicious domains and block responses before they reach the client. The equivalent for MCP registries would be a content validation layer that inspects capability descriptions, server names, and free-text fields against known malicious patterns before entries are written to the registry and before they are returned to agents. Organisations operating registries at scale should design their write path to accommodate such a filtering layer — a validation step between the pull request approval and the DynamoDB write that can be updated independently of the registry infrastructure itself. This is not a requirement for initial deployment, but it is the right seam to build into the architecture from the start. Agents consuming registry content should treat all free-text fields as untrusted input regardless of the registry's apparent reputation, applying the same scepticism a well-configured DNS resolver applies to every response it receives.
-
 ## 8.  Implementation Guide
 
 This section provides a practical walkthrough for implementing the complete registry architecture. The estimated time to a working deployment for an engineer familiar with AWS is four to six hours.
@@ -662,19 +659,6 @@ Google's Agent-to-Agent protocol addresses inter-agent communication — how one
 
 WebFinger (RFC 7033) provides a similar mechanism for discovering information about entities identified by URI, using a well-known URL pattern. The _mcp DNS record proposal follows the same conceptual model — a well-known location returns structured metadata about a service — but operates at the DNS layer rather than the HTTP layer. DNS-layer discovery is more appropriate for agent-to-agent contexts where the discovery client may not have prior knowledge of the target's HTTP infrastructure.
 
-### 10.6  Agent Peer Discovery: A Natural Extension
-
-The registry model described in this paper is centralised by design. An organisation operates a registry; agents query it to discover available servers. This is the right model for enterprise MCP deployments where governance, access control, and auditability are primary concerns. But it is not the only possible model, and the DNS convention described here points naturally toward a complementary peer discovery layer that does not require a registry intermediary at all.
-
-The extension is straightforward in concept. Rather than — or in addition to — publishing a registry at the URL advertised in the _mcp DNS record, an agent or service could publish its own capability manifest directly at a well-known HTTP path: /.well-known/mcp. Any other agent that knows the domain can query this path and discover what that agent can do, without consulting a central registry. The _mcp DNS record bootstraps the initial discovery; the /.well-known/mcp path serves the capability manifest directly. No intermediary required.
-
-This maps to a peer-to-peer discovery model that several developments in the agent ecosystem are converging toward. Google's Agent-to-Agent protocol already anticipates agents calling each other directly rather than routing all interactions through MCP registries. The original vision of WebRTC — browsers connecting peer-to-peer for audio and video without a centralised media server — provides a useful historical parallel: the peer-to-peer capability was architecturally sound even if signalling infrastructure emerged in practice to handle NAT traversal and session coordination. Similarly, a peer discovery layer for agents does not eliminate the value of registries; it adds a complementary primitive that agents can use when they already know a domain and want to discover capabilities directly.
-
-The data mesh parallel is equally instructive. In a data mesh architecture, data products are owned and published by the teams that produce them rather than registered in a central catalogue maintained by a platform team. Discoverability is a property of the data product itself, not a function of a central registry. The equivalent for agents would be agents owning and publishing their own capability manifests — making discoverability a property of the agent rather than a function of the registry it happens to be listed in. This shifts the governance model from registry-centric to agent-centric, with the _mcp DNS convention providing the common naming layer that makes peer discovery work across organisational boundaries.
-
-The extension also generalises beyond agents. The same /.well-known/mcp path could advertise data products, knowledge bases, or any structured capability that another agent might need to discover — not just MCP servers in the current sense. As the agentic web matures, the boundary between an agent, a data product, and a knowledge source will blur; a discovery convention that treats all of these as first-class primitives is more durable than one scoped to the current MCP server taxonomy.
-This peer discovery extension is explicitly out of scope for this paper, which addresses the registry bootstrap problem. It is identified here as a natural and important next layer — one that composes cleanly with the DNS convention and registry architecture described in the preceding sections rather than competing with them. The three layers stack: the _mcp DNS record bootstraps discovery of the registry, the registry provides governed, access-controlled enumeration of servers, and direct /.well-known/mcp paths enable peer-to-peer capability advertisement for agents that choose to publish themselves. Each layer is independently useful; together they form a complete discovery architecture for the agentic web.
-
 ## 11.  IANA Considerations
 
 This proposal does not define a new DNS record type. It uses the existing TXT record type with a well-known prefix convention — _mcp — following the pattern established by _dmarc, _domainkey, and similar service-specific DNS conventions. The _mcp label is an underscore-prefixed name as defined in RFC 8552, which scopes the interpretation of TXT records to the specific service identified by the underscore label. Implementers should note that RFC 8552 requires underscore labels to be registered or documented to avoid collisions. This proposal constitutes the documentation of _mcp for the purpose of the MCP registry bootstrap convention; formal IANA registration is identified as a future action below.
@@ -890,10 +874,6 @@ The proposal is available for implementation, critique, and extension. A referen
 [10] Thomas, M. (2025). Agentic AI: A Board Director's Guide. mariothomas.com.
 
 [11] Google. (2025). Agent-to-Agent Protocol Specification. Google DeepMind.
-
-## Acknowledgements
-
-*The author thanks Jonathan Jenkyn for peer review that clarified the scope of the DNS convention with respect to authentication and authorisation, and Jonathan Taws for substantive feedback on registry security controls and the agent peer discovery extension.*
 
 ## About the Author
 
