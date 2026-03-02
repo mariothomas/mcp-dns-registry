@@ -3,7 +3,7 @@
 **DNS-based discovery for MCP: organisation-scoped registry using `_mcp` TXT records**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Paper: v1.3](https://img.shields.io/badge/Paper-v1.3-green.svg)](mcp-dns-registry.pdf)
+[![Paper: v1.3](https://img.shields.io/badge/Paper-v1.3-green.svg)](paper/mcp-registry-architecture.pdf)
 
 ---
 
