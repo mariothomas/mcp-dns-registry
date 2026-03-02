@@ -1,0 +1,35 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Environment & secrets
+.env
+.env.*
+*.env
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# AWS
+.aws/
+*.zip
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+logs/

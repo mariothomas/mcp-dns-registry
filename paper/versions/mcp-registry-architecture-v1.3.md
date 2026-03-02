@@ -21,7 +21,6 @@ Chartered Director & Fellow, Institute of Directors mario@mariothomas.com  |  ma
 | 1.1 | 27 February 2026 | Published | Added Section 2.3 — What This Proposal Does Not Solve — clarifying that the _mcp DNS record addresses discovery only, and that authentication, authorisation, and tool capability enumeration are explicitly out of scope for the DNS layer. |
 | 1.2 | 28 February 2026 | Published | Extended Section 7.4 to address registry-level content filtering as a mitigation for prompt injection attacks, drawing on the DNS reputation services analogy. Added Section 10.6 — Agent Peer Discovery: A Natural Extension — sketching the /.well-known/mcp peer discovery model, referencing WebRTC and data mesh parallels, and positioning direct agent capability advertisement as a complementary layer to the registry architecture. Acknowledgements section added. |
 | 1.3 | 2 March 2026 | Published | Extended Section 8.1 to document path-based and subdomain-based registry URL patterns as equally compliant implementation approaches, with trade-offs for each. Updated SPEC.md accordingly. |
-| 1.4 | 2 March 2026 | Published | Updated Section 8.1 to reflect that the reference implementation at mcp.mariothomas.com uses path-based routing. Updated Section 8.4 and 8.5 to use correct filename index.js and handler index.handler. Rewrote Section 12 in present tense to reflect live deployment, confirmed GitHub repository URL, and noted path-based routing pattern used in the reference implementation. |
 
 ## 1.  The Problem This Paper Solves
 
@@ -449,7 +448,7 @@ https://documents.mcp.example.com
 
 Subdomain-based routing requires a wildcard certificate for *.mcp.example.com — note that a single-level wildcard such as *.example.com does not cover two levels deep — and either a separate CloudFront distribution per server or a single wildcard distribution with subdomain-aware routing in the Lambda@Edge function. The trade-off is additional infrastructure complexity. The benefit is genuine independence: each server can be deployed, updated, and owned by a different team without touching shared infrastructure. This pattern is better suited to larger organisations where different teams own different MCP servers.
 
-Both patterns are fully compliant with the _mcp DNS convention. The reference implementation at mcp.mariothomas.com uses path-based routing. Implementers should choose based on their organisational structure, team ownership model, and operational preferences rather than any constraint imposed by this convention.
+Both patterns are fully compliant with the _mcp DNS convention. The reference implementation at mcp.mariothomas.com uses subdomain-based routing. Implementers should choose based on their organisational structure, team ownership model, and operational preferences rather than any constraint imposed by this convention.
 
 The following subsections describe the reference implementation of this pattern using Amazon Web Services. Equivalent implementations are possible using Cloudflare Workers + KV (Cloudflare Workers can read request bodies and support JWT validation natively), Azure Front Door + Azure Cosmos DB, or any CDN provider that supports edge computing with request body access and an associated data store. The AWS implementation is provided as a complete, tested reference — not as a requirement.
 
@@ -482,7 +481,7 @@ aws dynamodb create-global-table \
 
 ### 8.4  Step 2 — Write the Lambda@Edge Function
 
-Create a file named index.js. Lambda@Edge runs in the us-east-1 region and is deployed via CloudFront behaviours. The function uses the AWS SDK for DynamoDB access and the Node.js crypto module for JWT validation:
+Create a file named registry-function.js. Lambda@Edge runs in the us-east-1 region and is deployed via CloudFront behaviours. The function uses the AWS SDK for DynamoDB access and the Node.js crypto module for JWT validation:
 
 ```
 const { DynamoDBClient, ScanCommand } = require('@aws-sdk/client-dynamodb');
@@ -583,14 +582,14 @@ Production note: ScanCommand performs a full table scan and is appropriate for s
 ```
 # Install dependencies
 npm install @aws-sdk/client-dynamodb @aws-sdk/util-dynamodb
-zip -r registry-function.zip index.js node_modules/
+zip -r registry-function.zip registry-function.js node_modules/
 
 # Create the Lambda function in us-east-1 (required for Lambda@Edge)
 aws lambda create-function \
 --function-name mcp-registry-edge \
 --runtime nodejs20.x \
 --role arn:aws:iam::ACCOUNT:role/mcp-registry-edge-role \
---handler index.handler \
+--handler registry-function.handler \
 --zip-file fileb://registry-function.zip \
 --region us-east-1
 
@@ -725,23 +724,23 @@ This proposal requests no new IANA registry entries at this time. If the convent
 
 ## 12.  Live Reference Implementation: mcp.mariothomas.com
 
-This paper is accompanied by a live reference implementation at mcp.mariothomas.com — a fully functional MCP registry and three MCP servers deployed on the architecture described in this paper and discoverable via a live _mcp DNS record. The implementation validates the architecture end-to-end and gives developers a working example they can query, fork, and test immediately.
+This paper is accompanied by a reference implementation that will be published concurrently with this version at mcp.mariothomas.com. When live, it will be a fully functional MCP registry and three MCP servers — public articles, public locations, and private documents with signed-URL retrieval — deployed on the architecture described in this paper and discoverable via a live _mcp DNS record. The implementation validates the architecture end-to-end and gives developers a working example they can query, fork, and test immediately.
 
-The reference implementation uses path-based routing. All servers are served from a single CloudFront distribution with a single Lambda@Edge function routing on URL path.
+A companion GitHub repository with full source will be linked from mariothomas.com at publication. The implementation serves three purposes: to validate that the architecture works as specified; to provide a concrete reference that implementers can inspect and learn from; and to demonstrate the public/private access model with real examples rather than hypothetical ones.
 
-**Reference Implementation Endpoints (live at publication)**
+Reference Implementation Endpoints (live at publication)
 
-```
 DNS record:     _mcp.mariothomas.com
-Registry:       https://mcp.mariothomas.com/registry       (public)
-Articles MCP:   https://mcp.mariothomas.com/articles       (public)
-Locations MCP:  https://mcp.mariothomas.com/locations      (public)
-Documents MCP:  https://mcp.mariothomas.com/documents      (private — bearer token required)
-```
 
-The articles server exposes a queryable catalogue of published articles from mariothomas.com, filterable by tag and date range. The locations server exposes a log of cities visited with arrival and departure dates. The documents server exposes private advisory materials and is accessible only with a valid RS256 JWT bearer token, demonstrating the public/private access model described in Section 6.
+Registry:       https://mcp.mariothomas.com/registry
 
-Full source code is available at github.com/mariothomas/mcp-dns-registry. The implementation serves three purposes: to validate that the architecture works as specified; to provide a concrete reference that implementers can inspect and learn from; and to demonstrate the public/private access model with real data rather than hypothetical examples.
+Articles MCP:   https://mcp.mariothomas.com/articles    (public)
+
+Locations MCP:  https://mcp.mariothomas.com/locations   (public)
+
+Documents MCP:  https://mcp.mariothomas.com/documents   (private — auth required)
+
+Source code:    https://github.com/mariothomas/mcp-dns-registry (link at publication)
 
 ### 12.1  The DNS Record
 
