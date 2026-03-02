@@ -3,7 +3,7 @@
 **DNS-based discovery for MCP: organisation-scoped registry using `_mcp` TXT records**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Paper: v1.1](https://img.shields.io/badge/Paper-v1.1-green.svg)](mcp-dns-registry.pdf)
+[![Paper: v1.3](https://img.shields.io/badge/Paper-v1.3-green.svg)](mcp-dns-registry.pdf)
 
 ---
 
@@ -160,7 +160,7 @@ Use `client/discover.py mariothomas.com` to query it directly.
 
 ## Paper
 
-The current architecture paper (v1.1) is available in the root of this repository and at [mariothomas.com](https://mariothomas.com).
+The current architecture paper (v1.3) is available in the root of this repository and at [mariothomas.com](https://mariothomas.com).
 
 It covers the design rationale, security model, IANA considerations, cost analysis, and complete deployment guide. Prior versions are archived in [`versions/`](versions/).
 
@@ -168,10 +168,12 @@ It covers the design rationale, security model, IANA considerations, cost analys
 
 ## Changelog
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0 | 25 February 2026 | Initial publication. |
-| 1.1 | March 2026 | Added Section 2.3 — What This Proposal Does Not Solve — clarifying that the `_mcp` DNS record addresses discovery only, and that authentication, authorisation, and tool capability enumeration are explicitly out of scope for the DNS layer. |
+| Version | Date | Status | Summary of Changes |
+|---------|------|--------|--------------------|
+| 1.0 | 25 February 2026 | Published | Initial publication. |
+| 1.1 | 27 February 2026 | Published | Added Section 2.3 — What This Proposal Does Not Solve — clarifying that the _mcp DNS record addresses discovery only, and that authentication, authorisation, and tool capability enumeration are explicitly out of scope for the DNS layer. |
+| 1.2 | 28 February 2026 | Published | Extended Section 7.4 to address registry-level content filtering as a mitigation for prompt injection attacks, drawing on the DNS reputation services analogy. Added Section 10.6 — Agent Peer Discovery: A Natural Extension — sketching the /.well-known/mcp peer discovery model, referencing WebRTC and data mesh parallels, and positioning direct agent capability advertisement as a complementary layer to the registry architecture. Acknowledgements section added. |
+| 1.3 | 2 March 2026 | Published | Extended Section 8.1 to document path-based and subdomain-based registry URL patterns as equally compliant implementation approaches, with trade-offs for each. Updated SPEC.md accordingly. |
 
 ---
 
