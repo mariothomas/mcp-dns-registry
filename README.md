@@ -3,7 +3,7 @@
 **DNS-based discovery for MCP: organisation-scoped registry using `_mcp` TXT records**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Paper: v1.3](https://img.shields.io/badge/Paper-v1.3-green.svg)](paper/mcp-registry-architecture.pdf)
+[![Paper: v1.4](https://img.shields.io/badge/Paper-v1.4-green.svg)](paper/mcp-registry-architecture.pdf)
 
 ---
 
@@ -74,7 +74,7 @@ Agent
 | Registry data | DynamoDB Global Tables | Server entries, multi-region reads |
 | Binary assets | Amazon S3 + Signed URLs | Documents, manifests |
 
-The architecture is vendor-neutral. Equivalent implementations using Cloudflare Workers + KV or Azure Front Door + Cosmos DB are provided in [`alternative-implementations/`](alternative-implementations/).
+The architecture is vendor-neutral. Equivalent implementations using Cloudflare Workers + KV or Azure Front Door + Cosmos DB are planned — see [`alternative-implementations/`](alternative-implementations/) and [`infrastructure/`](infrastructure/).
 
 ---
 
@@ -82,18 +82,28 @@ The architecture is vendor-neutral. Equivalent implementations using Cloudflare 
 
 ```
 mcp-dns-registry/
+├── CLIENT.md                        # curl examples for querying the live registry
+├── CONTRIBUTING.md                  # Contribution guidelines
+├── DNS.md                           # DNS record format and operator setup guide
+├── LICENSE                          # MIT licence
+├── README.md                        # This file
 ├── SPEC.md                          # The _mcp DNS convention specification
-├── mcp-dns-registry.pdf             # Current architecture paper
-├── mcp-dns-registry.md              # Current architecture paper (Markdown)
-├── mcp-dns-registry.docx            # Current architecture paper (Word)
-├── versions/                        # Archived prior versions
-├── registry/                        # Lambda@Edge function + deployment scripts
-├── dns/                             # DNS record examples (Route 53, Cloudflare, BIND)
-├── infrastructure/                  # CloudFormation + Terraform
-├── servers/                         # Three reference MCP servers (articles, locations, documents)
-├── alternative-implementations/     # Cloudflare Workers + generic Python reference
-├── client/                          # Discovery client scripts (Python + Node.js)
-└── examples/                        # Agent integration examples + curl test commands
+├── health.json                      # Registry health check response
+├── alternative-implementations/     # Community implementations (Cloudflare, Azure, GCP)
+├── infrastructure/                  # Infrastructure-as-code
+│   ├── aws/                         # CloudFormation template
+│   ├── azure/                       # Azure deployment (community contributions welcome)
+│   ├── gcp/                         # GCP deployment (community contributions welcome)
+│   └── terraform/                   # Terraform for AWS, Azure, and GCP
+├── mcp-function/                    # Lambda@Edge function source
+│   ├── index.js                     # Handler — JSON-RPC routing, JWT validation, DynamoDB
+│   ├── package.json
+│   └── package-lock.json
+└── paper/                           # Architecture paper
+    ├── mcp-registry-architecture.md
+    ├── mcp-registry-architecture.docx
+    ├── mcp-registry-architecture.pdf
+    └── versions/                    # Archived prior versions
 ```
 
 ---
@@ -101,25 +111,44 @@ mcp-dns-registry/
 ## Quick Start
 
 **1. Publish your DNS record**
+
 ```bash
-# Route 53 example — see dns/record-examples.txt for all formats
+# Route 53 example — see DNS.md for all providers
 _mcp.yourdomain.com.  300  IN  TXT  "v=mcp1;registry=https://mcp.yourdomain.com/registry;public=true;auth=https://auth.yourdomain.com/token;version=2026-02"
 ```
 
 **2. Deploy the registry**
+
 ```bash
-cd registry
-./deploy.sh --domain mcp.yourdomain.com --region eu-west-1
+# Deploy using the CloudFormation template
+aws cloudformation deploy \
+  --template-file infrastructure/aws/cloudformation.yaml \
+  --stack-name mcp-registry \
+  --parameter-overrides \
+      DomainName=mcp.yourdomain.com \
+      CertificateArn=arn:aws:acm:us-east-1:YOUR_ACCOUNT:certificate/YOUR_CERT \
+  --capabilities CAPABILITY_NAMED_IAM
+```
+
+Then deploy the Lambda function source from `mcp-function/`:
+
+```bash
+cd mcp-function
+zip -r ../registry-function.zip .
+aws lambda update-function-code \
+  --function-name mcp-registry \
+  --zip-file fileb://../registry-function.zip
 ```
 
 **3. Add your first server**
+
 ```bash
 aws dynamodb put-item \
   --table-name mcp-registry \
   --item '{
     "server_id":    { "S": "my-first-server" },
     "name":         { "S": "My First MCP Server" },
-    "url":          { "S": "https://my-server.yourdomain.com" },
+    "url":          { "S": "https://mcp.yourdomain.com/my-first-server" },
     "public":       { "BOOL": true },
     "capabilities": { "SS": ["data", "search"] },
     "deprecated":   { "BOOL": false }
@@ -128,8 +157,13 @@ aws dynamodb put-item \
 ```
 
 **4. Test it**
+
+See [CLIENT.md](CLIENT.md) for full curl examples against the live reference implementation.
+
 ```bash
-python3 client/discover.py yourdomain.com
+curl -X POST https://mcp.mariothomas.com/registry \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"discover_servers","arguments":{}}}'
 ```
 
 ---
@@ -144,7 +178,7 @@ A working implementation is available at `mcp.mariothomas.com`:
 - Locations server: `https://mcp.mariothomas.com/locations` (public)
 - Documents server: `https://mcp.mariothomas.com/documents` (private — auth required)
 
-Use `client/discover.py mariothomas.com` to query it directly.
+See [CLIENT.md](CLIENT.md) for full curl examples.
 
 ---
 
@@ -160,9 +194,7 @@ Use `client/discover.py mariothomas.com` to query it directly.
 
 ## Paper
 
-The current architecture paper (v1.3) is available in the root of this repository and at [mariothomas.com](https://mariothomas.com).
-
-It covers the design rationale, security model, IANA considerations, cost analysis, and complete deployment guide. Prior versions are archived in [`versions/`](versions/).
+The current architecture paper (v1.4) is available in [`paper/`](paper/) and at [mariothomas.com](https://mariothomas.com). Prior versions are archived in [`paper/versions/`](paper/versions/).
 
 ---
 
@@ -171,9 +203,10 @@ It covers the design rationale, security model, IANA considerations, cost analys
 | Version | Date | Status | Summary of Changes |
 |---------|------|--------|--------------------|
 | 1.0 | 25 February 2026 | Published | Initial publication. |
-| 1.1 | 27 February 2026 | Published | Added Section 2.3 — What This Proposal Does Not Solve — clarifying that the _mcp DNS record addresses discovery only, and that authentication, authorisation, and tool capability enumeration are explicitly out of scope for the DNS layer. |
-| 1.2 | 28 February 2026 | Published | Extended Section 7.4 to address registry-level content filtering as a mitigation for prompt injection attacks, drawing on the DNS reputation services analogy. Added Section 10.6 — Agent Peer Discovery: A Natural Extension — sketching the /.well-known/mcp peer discovery model, referencing WebRTC and data mesh parallels, and positioning direct agent capability advertisement as a complementary layer to the registry architecture. Acknowledgements section added. |
+| 1.1 | 27 February 2026 | Published | Added Section 2.3 — What This Proposal Does Not Solve — clarifying that the `_mcp` DNS record addresses discovery only, and that authentication, authorisation, and tool capability enumeration are explicitly out of scope for the DNS layer. |
+| 1.2 | 28 February 2026 | Published | Extended Section 7.4 to address registry-level content filtering as a mitigation for prompt injection attacks. Added Section 10.6 — Agent Peer Discovery: A Natural Extension. Acknowledgements section added. |
 | 1.3 | 2 March 2026 | Published | Extended Section 8.1 to document path-based and subdomain-based registry URL patterns as equally compliant implementation approaches, with trade-offs for each. Updated SPEC.md accordingly. |
+| 1.4 | 2 March 2026 | Published | Updated Section 8.1 to reflect that the reference implementation at mcp.mariothomas.com uses path-based routing. Updated Sections 8.4 and 8.5 to use correct filename `index.js` and handler `index.handler`. Rewrote Section 12 in present tense to reflect live deployment, confirmed GitHub repository URL, and noted path-based routing pattern used in the reference implementation. |
 
 ---
 

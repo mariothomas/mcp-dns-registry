@@ -1,0 +1,175 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: MCP DNS Registry - Lambda, DynamoDB, and CloudFront deployment
+
+Parameters:
+  DomainName:
+    Type: String
+    Description: Your domain name (e.g. mcp.example.com)
+  CertificateArn:
+    Type: String
+    Description: ARN of an ACM certificate for your domain (must be in us-east-1)
+
+Resources:
+
+  # -----------------------------------------------------------------------
+  # IAM
+  # -----------------------------------------------------------------------
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: mcp-registry-lambda-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+                - edgelambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: DynamoDBAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:Scan
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                Resource:
+                  - !Sub arn:aws:dynamodb:us-east-1:${AWS::AccountId}:table/mcp-registry
+                  - !Sub arn:aws:dynamodb:us-east-1:${AWS::AccountId}:table/mcp-articles
+                  - !Sub arn:aws:dynamodb:us-east-1:${AWS::AccountId}:table/mcp-locations
+                  - !Sub arn:aws:dynamodb:us-east-1:${AWS::AccountId}:table/mcp-documents
+
+  # -----------------------------------------------------------------------
+  # DynamoDB Tables
+  # -----------------------------------------------------------------------
+
+  RegistryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: mcp-registry
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: server_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: server_id
+          KeyType: HASH
+
+  ArticlesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: mcp-articles
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: article_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: article_id
+          KeyType: HASH
+
+  LocationsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: mcp-locations
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: location_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: location_id
+          KeyType: HASH
+
+  DocumentsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: mcp-documents
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: doc_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: doc_id
+          KeyType: HASH
+
+  # -----------------------------------------------------------------------
+  # Lambda@Edge Function
+  # -----------------------------------------------------------------------
+
+  RegistryFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: mcp-registry
+      Runtime: nodejs20.x
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          exports.handler = async (event) => {
+            return { status: '200', body: 'Placeholder - deploy index.js from mcp-function/' };
+          };
+      Description: MCP DNS Registry - Lambda@Edge handler
+      MemorySize: 128
+      Timeout: 10
+
+  RegistryFunctionVersion:
+    Type: AWS::Lambda::Version
+    Properties:
+      FunctionName: !Ref RegistryFunction
+      Description: Production version for Lambda@Edge
+
+  # -----------------------------------------------------------------------
+  # CloudFront Distribution
+  # -----------------------------------------------------------------------
+
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: MCP DNS Registry
+        Aliases:
+          - !Ref DomainName
+        ViewerCertificate:
+          AcmCertificateArn: !Ref CertificateArn
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
+        DefaultCacheBehavior:
+          TargetOriginId: dummy-origin
+          ViewerProtocolPolicy: redirect-to-https
+          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+          OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac
+          LambdaFunctionAssociations:
+            - EventType: origin-request
+              LambdaFunctionARN: !Ref RegistryFunctionVersion
+              IncludeBody: true
+        Origins:
+          - Id: dummy-origin
+            DomainName: aws.amazon.com
+            CustomOriginConfig:
+              HTTPSPort: 443
+              OriginProtocolPolicy: https-only
+        HttpVersion: http2
+        PriceClass: PriceClass_100
+
+Outputs:
+
+  CloudFrontDomain:
+    Description: CloudFront distribution domain name - create a CNAME from your domain to this value
+    Value: !GetAtt CloudFrontDistribution.DomainName
+
+  LambdaFunctionArn:
+    Description: Lambda function ARN - deploy mcp-function/index.js to this function
+    Value: !GetAtt RegistryFunction.Arn
+
+  RegistryEndpoint:
+    Description: Registry endpoint URL
+    Value: !Sub https://${DomainName}/registry

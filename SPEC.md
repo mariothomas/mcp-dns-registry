@@ -1,5 +1,8 @@
 # The `_mcp` DNS Convention
-## Specification v1.3 — March 2026
+
+This is the normative specification. For design rationale and deployment guidance, see the architecture paper.
+
+## Specification v1.4 — March 2026
 
 This document specifies the `_mcp` TXT DNS record convention for MCP registry discovery. It is the normative reference for the convention described in the architecture paper.
 
@@ -129,9 +132,9 @@ _mcp.example.com.  300  IN  TXT  "v=mcp1;registry=https://mcp.example.com;public
 _mcp.example.com.  300  IN  TXT  "v=mcp1;registry=https://mcp.example.com;public=false;auth=https://auth.example.com/token;version=2026-02"
 ```
 
-**Live reference implementation (subdomain-based):**
+**Live reference implementation (path-based):**
 ```
-_mcp.mariothomas.com.  300  IN  TXT  "v=mcp1;registry=https://mcp.mariothomas.com;public=true;auth=https://auth.mariothomas.com/token;version=2026-02"
+_mcp.mariothomas.com.  300  IN  TXT  "v=mcp1;registry=https://mcp.mariothomas.com/registry;public=true;auth=https://auth.mariothomas.com/token;version=2026-02"
 ```
 
 ---
@@ -155,4 +158,6 @@ An agent implementing this convention follows these steps:
 |---------|------|---------|
 | 1.0 | 25 February 2026 | Initial specification. |
 | 1.1 | 27 February 2026 | Added Section 4 — What This Convention Does Not Address — explicitly scoping authentication, authorisation, and tool capability enumeration as out of scope for the DNS layer. |
-| 1.3 | 2 March 2026 | Added Section 2.4 — Registry URL Patterns — documenting path-based and subdomain-based routing as equally compliant implementation patterns, with trade-offs for each. Updated Section 7 example records to show both patterns. Updated live reference implementation example to reflect subdomain-based routing. |
+| 1.2 | 28 February 2026 | Published | Extended Section 7.4 to address registry-level content filtering as a mitigation for prompt injection attacks. Added Section 10.6 — Agent Peer Discovery: A Natural Extension. Acknowledgements section added. |
+| 1.3 | 2 March 2026 | Added Section 2.4 — Registry URL Patterns — documenting path-based and subdomain-based routing as equally compliant implementation patterns, with trade-offs for each. Updated Section 7 example records to show both patterns. |
+| 1.4 | 2 March 2026 | Updated Section 7 live reference implementation example to reflect that mcp.mariothomas.com uses path-based routing. |
