@@ -1,5 +1,5 @@
 # The `_mcp` DNS Convention
-## Specification v1.1 — February 2026
+## Specification v1.3 — March 2026
 
 This document specifies the `_mcp` TXT DNS record convention for MCP registry discovery. It is the normative reference for the convention described in the architecture paper.
 
@@ -44,6 +44,30 @@ _mcp.example.com.  300  IN  TXT  "v=mcp1;
 
 A TTL of 300 to 900 seconds (5 to 15 minutes) is recommended. Shorter TTLs increase DNS query volume; longer TTLs slow propagation of updates. Agents should respect the TTL and not cache the record beyond it.
 
+### 2.4 Registry URL Patterns
+
+The `registry=` field in the DNS record is the URL of the registry root. The convention does not mandate how individual MCP servers are addressed relative to that root. Two patterns are supported:
+
+**Path-based:** the registry and all MCP servers share a single domain, differentiated by URL path. The `registry=` field includes the path to the registry endpoint:
+
+```
+registry=https://mcp.example.com/registry
+```
+
+Individual servers are then addressed at paths such as `https://mcp.example.com/articles` and `https://mcp.example.com/locations`. This pattern requires a single CloudFront distribution, a single certificate, and simpler DNS configuration. The trade-off is that all servers share the same deployment lifecycle. This pattern is well suited to small teams operating all servers centrally.
+
+**Subdomain-based:** each MCP server has its own subdomain under the registry domain. The `registry=` field points to the registry root with no path:
+
+```
+registry=https://mcp.example.com
+```
+
+Individual servers are then addressable at subdomains such as `https://articles.mcp.example.com` and `https://locations.mcp.example.com`. This pattern requires a wildcard certificate for `*.mcp.example.com` — note that a single-level wildcard such as `*.example.com` does not cover two levels of subdomain. The benefit is genuine independence: each server can be deployed, updated, and owned by a different team without touching shared infrastructure. This pattern is better suited to larger organisations where different teams own different MCP servers.
+
+Both patterns are fully compliant with this convention. Implementers should choose based on their organisational structure, team ownership model, and operational preferences.
+
+**Important:** compliant agents must not infer the address of individual MCP servers from the registry URL. Server addresses are always returned explicitly by the registry in response to a `discover_servers` call. The URL pattern is an implementation detail of the registry operator, not a property of the convention.
+
 ---
 
 ## 3. Scope
@@ -80,24 +104,34 @@ Formal IANA registration of the `_mcp` underscore label is a future action, pend
 
 ## 7. Example Records
 
-**Public registry, no authentication required:**
+**Public registry, no authentication required (path-based):**
 ```
 _mcp.example.com.  300  IN  TXT  "v=mcp1;registry=https://mcp.example.com/registry;public=true;version=2026-02"
 ```
 
-**Registry with both public and private servers:**
+**Public registry, no authentication required (subdomain-based):**
+```
+_mcp.example.com.  300  IN  TXT  "v=mcp1;registry=https://mcp.example.com;public=true;version=2026-02"
+```
+
+**Registry with both public and private servers (path-based):**
 ```
 _mcp.example.com.  300  IN  TXT  "v=mcp1;registry=https://mcp.example.com/registry;public=true;auth=https://auth.example.com/token;version=2026-02"
 ```
 
-**Fully private registry:**
+**Registry with both public and private servers (subdomain-based):**
 ```
-_mcp.example.com.  300  IN  TXT  "v=mcp1;registry=https://mcp.example.com/registry;public=false;auth=https://auth.example.com/token;version=2026-02"
+_mcp.example.com.  300  IN  TXT  "v=mcp1;registry=https://mcp.example.com;public=true;auth=https://auth.example.com/token;version=2026-02"
 ```
 
-**Live reference implementation:**
+**Fully private registry:**
 ```
-_mcp.mariothomas.com.  300  IN  TXT  "v=mcp1;registry=https://mcp.mariothomas.com/registry;public=true;auth=https://auth.mariothomas.com/token;version=2026-02"
+_mcp.example.com.  300  IN  TXT  "v=mcp1;registry=https://mcp.example.com;public=false;auth=https://auth.example.com/token;version=2026-02"
+```
+
+**Live reference implementation (subdomain-based):**
+```
+_mcp.mariothomas.com.  300  IN  TXT  "v=mcp1;registry=https://mcp.mariothomas.com;public=true;auth=https://auth.mariothomas.com/token;version=2026-02"
 ```
 
 ---
@@ -120,4 +154,5 @@ An agent implementing this convention follows these steps:
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0 | 25 February 2026 | Initial specification. |
-| 1.1 | March 2026 | Added Section 4 — What This Convention Does Not Address — explicitly scoping authentication, authorisation, and tool capability enumeration as out of scope for the DNS layer. |
+| 1.1 | 27 February 2026 | Added Section 4 — What This Convention Does Not Address — explicitly scoping authentication, authorisation, and tool capability enumeration as out of scope for the DNS layer. |
+| 1.3 | 2 March 2026 | Added Section 2.4 — Registry URL Patterns — documenting path-based and subdomain-based routing as equally compliant implementation patterns, with trade-offs for each. Updated Section 7 example records to show both patterns. Updated live reference implementation example to reflect subdomain-based routing. |

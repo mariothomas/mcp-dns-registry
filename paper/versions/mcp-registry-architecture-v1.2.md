@@ -4,8 +4,8 @@
 **Mario Thomas**  
 Head of Applied AI & Emerging Technology Strategy, AWS  
 Chartered Director & Fellow, Institute of Directors mario@mariothomas.com  |  mariothomas.com  
-*2 March 2026*  
-*Version 1.3*  
+*28 February 2026*  
+*Version 1.2*  
 
 ---
 
@@ -20,7 +20,6 @@ Chartered Director & Fellow, Institute of Directors mario@mariothomas.com  |  ma
 | 1.0 | 25 February 2026 | Published | Initial publication. |
 | 1.1 | 27 February 2026 | Published | Added Section 2.3 — What This Proposal Does Not Solve — clarifying that the _mcp DNS record addresses discovery only, and that authentication, authorisation, and tool capability enumeration are explicitly out of scope for the DNS layer. |
 | 1.2 | 28 February 2026 | Published | Extended Section 7.4 to address registry-level content filtering as a mitigation for prompt injection attacks, drawing on the DNS reputation services analogy. Added Section 10.6 — Agent Peer Discovery: A Natural Extension — sketching the /.well-known/mcp peer discovery model, referencing WebRTC and data mesh parallels, and positioning direct agent capability advertisement as a complementary layer to the registry architecture. Acknowledgements section added. |
-| 1.3 | 2 March 2026 | Published | Extended Section 8.1 to document path-based and subdomain-based registry URL patterns as equally compliant implementation approaches, with trade-offs for each. Updated SPEC.md accordingly. |
 
 ## 1.  The Problem This Paper Solves
 
@@ -412,43 +411,6 @@ return error(404, 'Method not found')
 ```
 
 In the pseudocode above, store denotes any low-latency key-value or document store reachable from the edge compute runtime — DynamoDB Global Tables in the AWS reference implementation, Cloudflare KV in a Workers-based implementation, or any equivalent. The abstraction is intentional: the logic is identical regardless of the underlying store.
-
-#### Registry URL Patterns
-
-The registry= field in the _mcp DNS record points to the registry root. The convention does not mandate how MCP servers are addressed relative to that root. Two patterns are in common use, each with distinct trade-offs.
-Path-based routing serves the registry and all MCP servers from a single domain, differentiating them by URL path:
-
-```
-registry=https://mcp.example.com/registry
-```
-
-Individual servers are addressed as:
-
-```
-https://mcp.example.com/articles
-https://mcp.example.com/locations
-https://mcp.example.com/documents
-```
-
-Path-based routing requires a single CloudFront distribution, a single certificate, and simpler DNS configuration. The Lambda@Edge function inspects the request path to route each request to the correct handler. The trade-off is that all servers share the same deployment lifecycle — updating one server's logic requires redeploying the shared function. This pattern is well suited to small teams operating all servers centrally.
-
-Subdomain-based routing gives each MCP server its own subdomain under the registry domain:
-
-```
-registry=https://mcp.example.com
-```
-
-Individual servers are addressed as:
-
-```
-https://articles.mcp.example.com
-https://locations.mcp.example.com
-https://documents.mcp.example.com
-```
-
-Subdomain-based routing requires a wildcard certificate for *.mcp.example.com — note that a single-level wildcard such as *.example.com does not cover two levels deep — and either a separate CloudFront distribution per server or a single wildcard distribution with subdomain-aware routing in the Lambda@Edge function. The trade-off is additional infrastructure complexity. The benefit is genuine independence: each server can be deployed, updated, and owned by a different team without touching shared infrastructure. This pattern is better suited to larger organisations where different teams own different MCP servers.
-
-Both patterns are fully compliant with the _mcp DNS convention. The reference implementation at mcp.mariothomas.com uses subdomain-based routing. Implementers should choose based on their organisational structure, team ownership model, and operational preferences rather than any constraint imposed by this convention.
 
 The following subsections describe the reference implementation of this pattern using Amazon Web Services. Equivalent implementations are possible using Cloudflare Workers + KV (Cloudflare Workers can read request bodies and support JWT validation natively), Azure Front Door + Azure Cosmos DB, or any CDN provider that supports edge computing with request body access and an associated data store. The AWS implementation is provided as a complete, tested reference — not as a requirement.
 
