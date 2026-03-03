@@ -3,7 +3,7 @@
 **DNS-based discovery for MCP: organisation-scoped registry using `_mcp` TXT records**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Paper: v1.4](https://img.shields.io/badge/Paper-v1.4-green.svg)](paper/mcp-registry-architecture.pdf)
+[![Paper: v1.4.1](https://img.shields.io/badge/Paper-v1.4.1-green.svg)](paper/mcp-registry-architecture.pdf)
 
 ---
 
@@ -207,6 +207,7 @@ The current architecture paper (v1.4) is available in [`paper/`](paper/) and at 
 | 1.2 | 28 February 2026 | Published | Extended Section 7.4 to address registry-level content filtering as a mitigation for prompt injection attacks. Added Section 10.6 — Agent Peer Discovery: A Natural Extension. Acknowledgements section added. |
 | 1.3 | 2 March 2026 | Published | Extended Section 8.1 to document path-based and subdomain-based registry URL patterns as equally compliant implementation approaches, with trade-offs for each. Updated SPEC.md accordingly. |
 | 1.4 | 2 March 2026 | Published | Updated Section 8.1 to reflect that the reference implementation at mcp.mariothomas.com uses path-based routing. Updated Sections 8.4 and 8.5 to use correct filename `index.js` and handler `index.handler`. Rewrote Section 12 in present tense to reflect live deployment, confirmed GitHub repository URL, and noted path-based routing pattern used in the reference implementation. |
+| 1.4.1 | 3 March 2026 | Published | Added copyright notice. No content changes. |
 
 ---
 

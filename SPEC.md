@@ -2,7 +2,7 @@
 
 This is the normative specification. For design rationale and deployment guidance, see the architecture paper.
 
-## Specification v1.4 — March 2026
+## Specification v1.4.1 — 3 March 2026
 
 This document specifies the `_mcp` TXT DNS record convention for MCP registry discovery. It is the normative reference for the convention described in the architecture paper.
 
@@ -161,3 +161,4 @@ An agent implementing this convention follows these steps:
 | 1.2 | 28 February 2026 | Published | Extended Section 7.4 to address registry-level content filtering as a mitigation for prompt injection attacks. Added Section 10.6 — Agent Peer Discovery: A Natural Extension. Acknowledgements section added. |
 | 1.3 | 2 March 2026 | Added Section 2.4 — Registry URL Patterns — documenting path-based and subdomain-based routing as equally compliant implementation patterns, with trade-offs for each. Updated Section 7 example records to show both patterns. |
 | 1.4 | 2 March 2026 | Updated Section 7 live reference implementation example to reflect that mcp.mariothomas.com uses path-based routing. |
+| 1.4.1 | 3 March 2026 | Published | Added copyright notice. No content changes. |

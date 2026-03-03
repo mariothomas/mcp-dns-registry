@@ -4,8 +4,8 @@
 **Mario Thomas**  
 Head of Applied AI & Emerging Technology Strategy, AWS  
 Chartered Director & Fellow, Institute of Directors mario@mariothomas.com  |  mariothomas.com  
-*3 March 2026*  
-*Version 1.4.1*
+*2 March 2026*  
+*Version 1.4*  
 
 ---
 
@@ -22,7 +22,6 @@ Chartered Director & Fellow, Institute of Directors mario@mariothomas.com  |  ma
 | 1.2 | 28 February 2026 | Published | Extended Section 7.4 to address registry-level content filtering as a mitigation for prompt injection attacks, drawing on the DNS reputation services analogy. Added Section 10.6 — Agent Peer Discovery: A Natural Extension — sketching the /.well-known/mcp peer discovery model, referencing WebRTC and data mesh parallels, and positioning direct agent capability advertisement as a complementary layer to the registry architecture. Acknowledgements section added. |
 | 1.3 | 2 March 2026 | Published | Extended Section 8.1 to document path-based and subdomain-based registry URL patterns as equally compliant implementation approaches, with trade-offs for each. Updated SPEC.md accordingly. |
 | 1.4 | 2 March 2026 | Published | Updated Section 8.1 to reflect that the reference implementation at mcp.mariothomas.com uses path-based routing. Updated Section 8.4 and 8.5 to use correct filename index.js and handler index.handler. Rewrote Section 12 in present tense to reflect live deployment, confirmed GitHub repository URL, and noted path-based routing pattern used in the reference implementation. |
-| 1.4.1 | 3 March 2026 | Published | Added copyright notice. No content changes. |
 
 ## 1.  The Problem This Paper Solves
 
@@ -945,9 +944,3 @@ The views expressed in this paper are the author's own and do not represent the 
 
 Contact: mario@mariothomas.com
 Web: mariothomas.com
-
----
-
-*This whitepaper was first published at [mariothomas.com](https://mariothomas.com/whitepapers/).*
-
-**Copyright © 2026 Mario Thomas**
