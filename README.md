@@ -3,7 +3,7 @@
 **DNS-based discovery for MCP: organisation-scoped registry using `_mcp` TXT records**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Paper: v1.4.1](https://img.shields.io/badge/Paper-v1.4.1-green.svg)](paper/mcp-registry-architecture.pdf)
+[![Paper: v1.5](https://img.shields.io/badge/Paper-v1.5-green.svg)](paper/mcp-registry-architecture.pdf)
 
 ---
 
@@ -208,6 +208,7 @@ The current architecture paper (v1.4) is available in [`paper/`](paper/) and at 
 | 1.3 | 2 March 2026 | Published | Extended Section 8.1 to document path-based and subdomain-based registry URL patterns as equally compliant implementation approaches, with trade-offs for each. Updated SPEC.md accordingly. |
 | 1.4 | 2 March 2026 | Published | Updated Section 8.1 to reflect that the reference implementation at mcp.mariothomas.com uses path-based routing. Updated Sections 8.4 and 8.5 to use correct filename `index.js` and handler `index.handler`. Rewrote Section 12 in present tense to reflect live deployment, confirmed GitHub repository URL, and noted path-based routing pattern used in the reference implementation. |
 | 1.4.1 | 3 March 2026 | Published | Added copyright notice. No content changes. |
+| 1.5 | 19 March 2026 | Published | Expanded Section 2.3 to include the explicit 255-byte DNS TXT record constraint as the hard technical rationale for the pointer-not-container design decision. Added version field to Section 5.4 DynamoDB schema for semantic versioning of registry entries, with accompanying field description distinguishing it from protocol_version. Added Section 5.7 — The Read Path: Audit Trail — making explicit that CloudFront and Lambda@Edge logs provide a queryable record of every agent access. Added Section 7.5 — Context Window Constraints in Large Registries — noting this as a known limitation and recommending aggressive use of capability_filter, concise server entries, and pagination at scale. Acknowledgements updated to reflect feedback from Cole Johnston. |
 
 ---
 

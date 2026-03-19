@@ -2,7 +2,7 @@
 
 This is the normative specification. For design rationale and deployment guidance, see the architecture paper.
 
-## Specification v1.4.1 — 3 March 2026
+## Specification v1.5 — 19 March 2026
 
 This document specifies the `_mcp` TXT DNS record convention for MCP registry discovery. It is the normative reference for the convention described in the architecture paper.
 
@@ -89,6 +89,8 @@ This distinguishes it from per-server DNS primitives such as those proposed in S
 
 **Server verification.** The record points to a registry. It does not cryptographically verify the identity of the registry or the servers it lists. DNSSEC, where deployed and validated, provides integrity guarantees on the DNS record itself. Registry-level and server-level authentication are separate concerns.
 
+**Registry content.** The `_mcp` TXT record is a pointer, not a container. DNS TXT records are limited to 255 bytes per string, with a practical record size limit of approximately 512 bytes before EDNS0 is required. That is sufficient to carry a registry URL, a version string, an auth endpoint pointer, and a small number of flags. It is not sufficient to carry a governed catalogue of MCP servers with capabilities, authentication details, data residency constraints, and ownership metadata. Implementations that attempt to encode a full server catalogue directly in the TXT record will encounter this constraint at modest scale. The registry is where the richness lives.
+
 ---
 
 ## 5. DNSSEC
@@ -162,3 +164,4 @@ An agent implementing this convention follows these steps:
 | 1.3 | 2 March 2026 | Added Section 2.4 — Registry URL Patterns — documenting path-based and subdomain-based routing as equally compliant implementation patterns, with trade-offs for each. Updated Section 7 example records to show both patterns. |
 | 1.4 | 2 March 2026 | Updated Section 7 live reference implementation example to reflect that mcp.mariothomas.com uses path-based routing. |
 | 1.4.1 | 3 March 2026 | Published | Added copyright notice. No content changes. |
+| 1.5 | 19 March 2026 | Published | Expanded Section 2.3 to include the explicit 255-byte DNS TXT record constraint as the hard technical rationale for the pointer-not-container design decision. Added version field to Section 5.4 DynamoDB schema for semantic versioning of registry entries, with accompanying field description distinguishing it from protocol_version. Added Section 5.7 — The Read Path: Audit Trail — making explicit that CloudFront and Lambda@Edge logs provide a queryable record of every agent access. Added Section 7.5 — Context Window Constraints in Large Registries — noting this as a known limitation and recommending aggressive use of capability_filter, concise server entries, and pagination at scale. Acknowledgements updated to reflect feedback from Cole Johnston. |
