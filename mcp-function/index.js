@@ -18,6 +18,11 @@ exports.handler = async (event) => {
   const request = event.Records[0].cf.request;
   const path = request.uri;
 
+  // Serve landing page for browser GET requests to root
+  if (request.method === 'GET' && (request.uri === '/' || request.uri === '')) {
+    return request; // pass through to CloudFront origin (index.html)
+  }
+
   let body;
   try {
     const raw = Buffer.from(request.body.data, 'base64').toString('utf8');
