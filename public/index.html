@@ -556,6 +556,21 @@
 
   </div>
 
+  <!-- Shiro analytics: mariothomas.com's own collector (private, first-party).
+       Config first, as data; the script loads deferred. -->
+  <script>
+    window.SHIRO_CONFIG = {
+      endpoint: 'https://analytics.mariothomas.com/pixel.gif',
+      debug: false,
+      trackScroll: true,
+      trackVisibility: true,
+      trackHistoryChanges: false,
+      respectDNT: false,
+      pid: 'mcp-mariothomas'
+    };
+  </script>
+  <script defer src="https://analytics.mariothomas.com/index.min.js?v=3"></script>
+
   <script>
     function copyCmd(btn, text) {
       navigator.clipboard.writeText(text).then(() => {
